@@ -1,0 +1,13 @@
+flask
+requests
+idna
+python-whois
+tldextract
+pyOpenSSL
+selenium
+webdriver_manager
+chromedriver_py
+datetime
+pymisp
+python-dotenv
+gunicorn

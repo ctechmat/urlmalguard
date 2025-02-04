@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'fr') }}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="static/styles/resultats.css" rel="stylesheet" >
+    <title>{{ translations.result_title }}</title>
+</head>
+
+<body>
+    <h1>{{ translations.result_description }} {{ url }}</h1>
+    <section class="note">
+        <div class="{{ 'danger' if resultats['score_general'] == 2 else 'warning' if resultats['score_general'] == 1 else 'safe' }}">
+            {% if resultats['score_general'] == 0 %}
+                <p>{{ translations.result_note_safe }} <span style="font-size: 40px;">&#x2705;</span></p>
+                <p style="font-size: 14px;">{{ translations.result_note_safe_information }}</p>
+            {% elif resultats['score_general'] == 1 %}
+                <p>{{ translations.result_note_warning }}  <span style="font-size: 40px; color: orange">&#x26A0;</span></p>
+                <p style="font-size: 14px;">{{ translations.result_note_warning_information | safe }}</p>
+            {% elif resultats['score_general'] == 2 %}
+                <p>{{ translations.result_note_danger }} <span style="font-size: 40px;">&#x274C;</span></p>
+                <p style="font-size: 14px;">{{ translations.result_note_danger_information | safe }}</p>
+            {% endif %}
+        </div>
+    </section>
+    
+    <section class="general">
+        <div>
+            {% if resultats['domain_is_valid'] %}
+                <p>{{ translations.result_general_hour }} : {{ resultats['timestamp'] }}</p>
+                <p>{{ translations.result_general_domain }} : {{ resultats['domain_extracted'] }}</p>
+                <p>{{ translations.result_general_subdomain }} : {{ resultats['subdomain_extracted'] }}</p>
+                <p>{{ translations.result_general_domain_ip_address }} : {{ resultats['domain_ip_address'] }}</p>
+            {% else %}
+                <p>{{ translations.result_not_valid_domain }}</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="container">
+        <div class="{{ 'danger' if resultats['score_general_information'] == 2 else 'warning' if resultats['score_general_information'] == 1 else 'safe' }}">
+            <h2>{{ translations.result_geninf_title }}</h2>
+            {% if resultats['domain_is_valid'] %}
+                <h3>{{ translations.result_geninf_domain }}</h3>
+                {% if resultats['domain_creation_date'] == False and resultats['domain_creation_date'] == False %}
+                    <p>{{ translations.result_geninf_domain_creation_date_error }}</p>
+                {% else %}
+                    <p>{{ translations.result_geninf_domain_creation_date }} {{ resultats['domain_creation_date'] }}</p>
+                    <p>{{ translations.result_geninf_domain_expiration_date }} {{ resultats['domain_expiration_date'] }}</p>
+                    {% if resultats['domain_is_new'] %}
+                        <p>&#x274C; {{ translations.result_geninf_domain_creation_date_new }}</p>
+                    {% else %}
+                        <p>&#x2705; {{ translations.result_geninf_domain_creation_date_notnew }}</p>
+                    {% endif %}
+                {% endif %}
+                <h3>{{ translations.result_geninf_ip }}</h3>
+                {% if resultats['ip_organisation'] == False %}
+                    <p>{{ translations.result_geninf_ip_organisation }} {{ translations.result_geninf_ip_error }}</p>
+                {% else %}
+                    <p>{{ translations.result_geninf_ip_org }} {{ resultats['ip_organisation'] }}</p>
+                {% endif %}
+                {% if resultats['ip_country'] == False %}
+                    <p>{{ translations.result_geninf_ip_cnty }} {{ translations.result_geninf_ip_error }}</p>
+                {% else %}
+                    <p>{{ translations.result_geninf_ip_cnty }} {{ resultats['ip_country'] }}</p>
+                {% endif %}
+            {% else %}
+                <p>{{ translations.result_not_valid_domain }}</p>
+            {% endif %}                      
+        </div>
+        <div class="{{ 'danger' if resultats['score_certificate_information'] == 2 else 'warning' if resultats['score_certificate_information'] == 1 else 'safe' }}">
+            <h2>{{ translations.result_certificate_title }}</h2>
+            {% if resultats['domain_is_valid'] %}
+                {% if resultats['is_https'] %}
+                    {% if resultats['cert_info'] %}
+                        {% if resultats['cert_is_self_signed'] %}
+                            <p>&#x274C; {{ translations.result_certificate_type_a }}</p>
+                        {% else %}
+                            <p>&#x2705; {{ translations.result_certificate_type_v }}</p>
+                        {% endif %}
+                        {% if resultats['cert_is_expired'] %}
+                            <p>&#x274C; {{ translations.result_certificate_exp }}</p>
+                        {% else %}
+                            <p>&#x2705; {{ translations.result_certificate_notexp }}</p>
+                        {% endif %}
+                        <p>{{ translations.result_certificate_domain }} {{ resultats['cert_info_subject'] }}</p>
+                        <p>{{ translations.result_certificate_autority }} {{ resultats['cert_info_issuer'] }}</p>
+                        <p>{{ translations.result_certificate_period_from }} {{ resultats['cert_info_notbefore'] }} {{ translations.result_certificate_period_to }} {{ resultats['cert_info_notafter'] }}</p>
+                    {% else %}
+                        <p>&#x274C; {{ translations.result_certificate_notok }} {{ resultats['cert_info_subject'] }}</p>
+                    {% endif %}
+                {% else %}
+                    <p>{{ translations.result_certificate_http }}</p>
+                {% endif %}
+            {% else %}
+                <p>{{ translations.result_not_valid_domain }}</p>
+            {% endif %}
+        </div>
+        <div class="{{ 'danger' if resultats['score_behavior_information'] == 2 else 'warning' if resultats['score_behavior_information'] == 1 else 'safe' }}">
+            <h2>{{ translations.result_behavior_title }}</h2>
+            {% if resultats['domain_is_valid'] %}
+                <h3>{{ translations.result_behavior_download }}</h3>
+                    {% if resultats['downloadable'] %}
+                        <p>&#x274C; {{ translations.result_behavior_download_file }} {{ resultats['downloadable_filename'] }}</p>
+                    {% else %}
+                        <p>&#x2705; {{ translations.result_behavior_download_nofile }}</p>
+                    {% endif %}
+                <h3>{{ translations.result_behavior_autoredirect }}</h3>
+                    {% if resultats['redirection'] %}
+                        <p>&#x274C; {{ translations.result_behavior_autoredirect_detect }}</p>
+                        <p>{{ translations.result_behavior_autoredirect_detect_furl }} {{ resultats['redirection_final_url'] }}</p>
+                    {% else %}
+                        <p>&#x2705; {{ translations.result_behavior_autoredirect_nodetect }}</p>
+                    {% endif %}
+            {% else %}
+                <p>{{ translations.result_not_valid_domain }}</p>
+            {% endif %}
+        </div>
+        <div class="{{ 'danger' if resultats['score_mask_information'] == 2 else 'warning' if resultats['score_mask_information'] == 1 else 'safe' }}">
+            <h2>{{ translations.result_dommask_title }}</h2>
+            <h3>{{ translations.result_dommask_punycode }} <span style="font-size: 10px">{{ translations.result_dommask_punycode_info }}</span></h3>
+            {% if resultats['punycode_detected'] %}
+                <p>&#x274C; {{ translations.result_dommask_punycode_detect }}</p>
+                {% if resultats['punycode_url_decoded'] == False %}
+                    <p>{{ translations.result_dommask_punycode_detect_durl_error }}</p>
+                {% else %}
+                    <p>{{ translations.result_dommask_punycode_detect_durl }} {{ resultats['punycode_url_decoded'] }}</p>
+                {% endif %}
+            {% else %}
+                <p>&#x2705; {{ translations.result_dommask_punycode_nodetect }}</p>
+            {% endif %}
+            <h3>{{ translations.result_dommask_noascii }} <span style="font-size: 10px">{{ translations.result_dommask_noascii_info }}</span></h3>
+            {% if resultats['non_ascii_caracters'] %}
+                <p>&#x274C; {{ translations.result_dommask_noascii_detect }} {{ resultats['punycode_url_decoded'] }}</p>
+            {% else %}
+                <p>&#x2705; {{ translations.result_dommask_noascii_nodetect }}</p>
+            {% endif %}
+            <h3>{{ translations.result_dommask_shorturl }} <span style="font-size: 10px">{{ translations.result_dommask_shorturl_info }}</span></h3>
+            {% if resultats['url_short_detected'] %}
+                {% if resultats['url_long'] == False %}
+                    <p>&#x274C; {{ translations.result_dommask_shorturl_detect_error }} {{ resultats['url_long'] }}</p>
+                {% else %}
+                    <p>&#x274C; {{ translations.result_dommask_shorturl_detect }} {{ resultats['url_long'] }}</p>
+                {% endif %}
+            {% else %}
+                <p>&#x2705; {{ translations.result_dommask_shorturl_nodetect }}</p>
+            {% endif %}
+            <h3>{{ translations.result_dommask_typosquat }} <span style="font-size: 10px">{{ translations.result_dommask_typosquat_info }}</span></h3>
+            {% if resultats['typosquat_found_domains'] or resultats['typosquat_fr_found_domains'] %}
+                <p>&#x274C; {{ translations.result_dommask_typosquat_detect }} {{ resultats['typosquat_list_domains'] | join(', ') or resultats['typosquat_fr_list_domains'] | join(', ') }}</p>
+            {% else %}
+                <p>&#x2705; {{ translations.result_dommask_typosquat_nodetect }}</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="reputation">
+        <div class="reputation_bloc">
+            <h2>{{ translations.result_analysis_title }}</h2>
+            <div class="reputation_bloc2">
+                <div class="{{ 'danger' if resultats['score_analysis_html'] == 2 else 'warning' if resultats['score_analysis_html'] == 1 else 'safe' }}">
+                    <h2>{{ translations.result_html_analysis_title }}</h2>
+                    {% if resultats['domain_is_valid'] %}
+                        <h3>{{ translations.result_html_analysis_ext_domain }} <span style="font-size: 10px">{{ translations.result_html_analysis_ext_domain_info }}</span></h3>
+                        {% if resultats['html_is_there_external_domain'] %}
+                            <p>&#x274C; {{ translations.result_html_analysis_detect }}: {{ resultats['html_external_domains_list'] | join(', ') }}</p>
+                        {% else %}
+                            <p>&#x2705; {{ translations.result_html_analysis_ext_domain_nodetect }}</p>
+                        {% endif %}
+                        <h3>{{ translations.result_html_analysis_hidden_images }} <span style="font-size: 10px"></span></h3>
+                        {% if resultats['html_is_there_hidden_images'] %}
+                            <p>&#x274C; {{ translations.result_html_analysis_detect }}</p>
+                        {% else %}
+                            <p>&#x2705; {{ translations.result_html_analysis_hidden_images_nodetect }}</p>
+                        {% endif %}
+                        <h3>{{ translations.result_html_analysis_hidden_links }} <span style="font-size: 10px"></span></h3>
+                        {% if resultats['html_is_there_hidden_links'] %}
+                            <p>&#x274C; {{ translations.result_html_analysis_detect }}</p>
+                        {% else %}
+                            <p>&#x2705; {{ translations.result_html_analysis_hidden_links_nodetect }}</p>
+                        {% endif %}
+                        <h3>{{ translations.result_html_analysis_hidden_forms }} <span style="font-size: 10px"></span></h3>
+                        {% if resultats['html_is_there_hidden_forms'] %}
+                            <p>&#x274C; {{ translations.result_html_analysis_detect }}</p>
+                        {% else %}
+                            <p>&#x2705; {{ translations.result_html_analysis_hidden_forms_nodetect }}</p>
+                        {% endif %}
+                        <h3>{{ translations.result_html_analysis_hidden_inputs }} <span style="font-size: 10px"></span></h3>
+                        {% if resultats['html_is_there_hidden_inputs'] %}
+                            <p>&#x274C; {{ translations.result_html_analysis_detect }}</p>
+                        {% else %}
+                            <p>&#x2705; {{ translations.result_html_analysis_hidden_inputs_nodetect }}</p>
+                        {% endif %}
+                        <h3>{{ translations.result_html_analysis_hidden_iframe }} <span style="font-size: 10px"></span></h3>
+                        {% if resultats['html_is_there_hidden_iframes'] %}
+                            <p>&#x274C; {{ translations.result_html_analysis_detect }}</p>
+                        {% else %}
+                            <p>&#x2705; {{ translations.result_html_analysis_hidden_iframe_nodetect }}</p>
+                        {% endif %}
+                    {% else %}
+                        <p>{{ translations.result_not_valid_domain }}</p>
+                    {% endif %}
+                </div>
+                <div class="{{ 'danger' if resultats['score_analysis_js'] == 2 else 'warning' if resultats['score_analysis_js'] == 1 else 'safe' }}">
+                    <h2>{{ translations.result_js_analysis_title }}</h2>
+                    {% if resultats['domain_is_valid'] %}
+                        {% if resultats['js_detected'] %}
+                            <h3>{{ translations.result_js_analysis_redirection }}</h3>
+                            {% if resultats['js_redirection'] %}
+                                <p>&#x274C; {{ translations.result_js_analysis_detect }}</p>
+                            {% else %}
+                                <p>&#x2705; {{ translations.result_js_analysis_nodetect }}</p>
+                            {% endif %}
+                            <h3>{{ translations.result_js_analysis_keylog }} <span style="font-size: 10px">{{ translations.result_js_analysis_keylog_info }}</span></h3>
+                            {% if resultats['js_keylogging'] %}
+                                <p>&#x274C; {{ translations.result_js_analysis_detect }}</p>
+                            {% else %}
+                                <p>&#x2705; {{ translations.result_js_analysis_nodetect }}</p>
+                            {% endif %}
+                            <h3>{{ translations.result_js_analysis_modifdom }} <span style="font-size: 10px">{{ translations.result_js_analysis_modifdom_info }}</span></h3>
+                            {% if resultats['js_dom_manipulation'] %}
+                                <p>&#x274C; {{ translations.result_js_analysis_detect }}</p>
+                            {% else %}
+                                <p>&#x2705; {{ translations.result_js_analysis_nodetect }}</p>
+                            {% endif %}
+                        {% else %}
+                            <p>{{ translations.result_js_analysis_nocode }}</p>
+                        {% endif %}
+                    {% else %}
+                        <p>{{ translations.result_not_valid_domain }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="reputation_bloc">
+            <h2>{{ translations.result_reputation_title }} <span style="font-size: 14px">{{ translations.result_reputation_title_d }}</span></h2>
+            <div class="reputation_bloc2">
+                <div class="{{ 'danger' if resultats['score_malicious_url'] == 2 else 'warning' if resultats['score_malicious_url'] == 1 else 'safe' }}">
+                    <h2>{{ translations.result_urlreputation_title }}</h2>
+                    {% if resultats['domain_is_valid'] %}
+                        {% if resultats['known_url_by_openphish'] %}
+                            <p>&#x274C; Openphish : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Openphish : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_url_by_urlhaus'] %}
+                            <p>&#x274C; Urlhaus : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Urlhaus : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_url_by_phishing_database_newtoday'] %}
+                            <p>&#x274C; Phishing Database : {{ translations.result_reputation_known }}</p>
+                        {% elif resultats['known_url_by_phishing_database_activelinks'] %}
+                            <p>&#x274C; Phishing Database : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Phishing Database : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_url_by_phishunt'] %}
+                            <p>&#x274C; Phishunt.io : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Phishunt.io : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_url_by_urlabuse_malware'] %}
+                            <p>&#x274C; Urlabuse : {{ translations.result_reputation_known }}</p>
+                        {% elif resultats['known_url_by_urlabuse_phishing'] %}
+                            <p>&#x274C; Urlabuse : {{ translations.result_reputation_known }}</p>
+                        {% elif resultats['known_url_by_urlabuse_hacked'] %}
+                            <p>&#x274C; Urlabuse : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Urlabuse : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_url_by_threatview'] %}
+                            <p>&#x274C; Threatview.io : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Threatview.io : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_url_by_trcert'] %}
+                            <p>&#x274C; Trcert : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Trcert : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['otx_api_key'] %}
+                            {% if resultats['otx_url_known'] %}
+                                {% if resultats['otx_url_nb_pulse'] > 0 %}
+                                    <p>&#x274C; OTX : {{ translations.result_reputation_known_in }} {{ resultats['otx_url_nb_pulse'] }} pulse(s)</p>                          
+                                {% else %}                            
+                                    <p>&#x2705; OTX : {{ translations.result_reputation_notknown }}</p>
+                                {% endif %}
+                            {% else %}
+                                <p>&#x2705; OTX : {{ translations.result_reputation_notknown }}</p>
+                            {% endif %}
+                        {% endif %}
+                        {% if resultats['vt_api_key'] %}
+                            {% if resultats['vt_url_error'] %}
+                                <p>Virustotal : {{ translations.result_reputation_error }} {{ resultats['vt_url_reason'] }}</p>
+                            {% else %}
+                                {% if resultats['vt_url_known'] %}
+                                    {% if resultats['vt_url_malicious'] > 0 %}
+                                        <p>&#x274C; VirusTotal : {{ translations.result_reputation_known_by }} {{ resultats['vt_url_malicious'] }} {{ translations.result_reputation_known_by_e }} {{ resultats['vt_url_total'] }}</p>                          
+                                    {% else %}                            
+                                        <p>&#x2705; VirusTotal : {{ translations.result_reputation_notknown }} (0 / {{ resultats['vt_url_total'] }})</p>
+                                    {% endif %}
+                                {% else %}
+                                    <p>&#x2705; VirusTotal : {{ translations.result_reputation_notknown }}</p>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                        {% if resultats['misp_api_key'] %}
+                            {% if resultats['misp_url_error'] %}
+                                <p>MISP : {{ translations.result_reputation_error }} {{ resultats['misp_url_reason'] }}</p>
+                            {% else %}
+                                {% if resultats['misp_url_known'] %}
+                                    <p>&#x274C; MISP : {{ translations.result_reputation_known }}</p>                              
+                                {% else %}
+                                    <p>&#x2705; MISP : {{ translations.result_reputation_notknown }}</p>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    {% else %}
+                        <p>{{ translations.result_not_valid_domain }}</p>
+                    {% endif %}
+                </div>
+                <div class="{{ 'danger' if resultats['score_malicious_domain'] == 2 else 'warning' if resultats['score_malicious_domain'] == 1 else 'safe' }}">
+                    <h2>{{ translations.result_domainreputation_title }}</h2>
+                    {% if resultats['domain_is_valid'] %}
+                        {% if resultats['known_domain_by_phishing_army'] %}
+                            <p>&#x274C; Phishing Army : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Phishing Army : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_domain_by_shadowwhisperer_malware'] %}
+                            <p>&#x274C; ShadowWhisperer : {{ translations.result_reputation_known }}</p>
+                        {% elif resultats['known_domain_by_shadowwhisperer_scam'] %}
+                            <p>&#x274C; ShadowWhisperer : {{ translations.result_reputation_known }}</p>
+                        {% elif resultats['known_domain_by_shadowwhisperer_urlshortener'] %}
+                            <p>&#x274C; ShadowWhisperer : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; ShadowWhisperer : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_domain_by_adguardteam_f10'] %}
+                            <p>&#x274C; AdGuardTeam : {{ translations.result_reputation_known }}</p>
+                        {% elif resultats['known_domain_by_adguardteam_f11'] %}
+                            <p>&#x274C; AdGuardTeam : {{ translations.result_reputation_known }}</p>
+                        {% elif resultats['known_domain_by_adguardteam_f30'] %}
+                            <p>&#x274C; AdGuardTeam : {{ translations.result_reputation_known }}</p>
+                        {% elif resultats['known_domain_by_adguardteam_f34'] %}
+                            <p>&#x274C; AdGuardTeam : {{ translations.result_reputation_known }}</p>
+                        {% elif resultats['known_domain_by_adguardteam_f41'] %}
+                            <p>&#x274C; AdGuardTeam : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; AdGuardTeam : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_domain_by_duggytuxy'] %}
+                            <p>&#x274C; Duggy Tuxy : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Duggy Tuxy : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_domain_by_discordantiscan'] %}
+                            <p>&#x274C; Discord-AntiScam : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Discord-AntiScam : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_domain_by_elliotwutingfeng'] %}
+                            <p>&#x274C; Elliotwutingfeng : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Elliotwutingfeng : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_domain_by_threatview'] %}
+                            <p>&#x274C; Threatview.io : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Threatview.io : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['otx_api_key'] %}
+                            {% if resultats['otx_domain_known'] %}
+                                {% if resultats['otx_domain_nb_pulse'] > 0 %}
+                                    <p>&#x274C; OTX : {{ translations.result_reputation_known_in }} {{ resultats['otx_domain_nb_pulse'] }} pulse(s)</p>                          
+                                {% else %}                            
+                                    <p>&#x2705; OTX : {{ translations.result_reputation_notknown }}</p>
+                                {% endif %}
+                            {% else %}
+                                <p>&#x2705; OTX : {{ translations.result_reputation_notknown }}</p>
+                            {% endif %}
+                        {% endif %}
+                        {% if resultats['vt_api_key'] %}
+                            {% if resultats['vt_domain_error'] %}
+                                <p>Virustotal : {{ translations.result_reputation_error }} {{ resultats['vt_domain_reason'] }}</p>
+                            {% else %}
+                                {% if resultats['vt_domain_known'] %}
+                                    {% if resultats['vt_domain_malicious'] > 0 %}
+                                        <p>&#x274C; VirusTotal : {{ translations.result_reputation_known_by }} {{ resultats['vt_domain_malicious'] }} {{ translations.result_reputation_known_by_e }} {{ resultats['vt_domain_total'] }}</p>                      
+                                    {% else %}                            
+                                        <p>&#x2705; VirusTotal : {{ translations.result_reputation_notknown }} (0 / {{ resultats['vt_domain_total'] }})</p>
+                                    {% endif %}
+                                {% else %}
+                                    <p>&#x2705; VirusTotal : {{ translations.result_reputation_notknown }}</p>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                        {% if resultats['misp_api_key'] %}
+                            {% if resultats['misp_ip_error'] %}
+                                <p>MISP : {{ translations.result_reputation_error }} {{ resultats['misp_ip_reason'] }}</p>
+                            {% else %}
+                                {% if resultats['misp_ip_known'] %}
+                                    <p>&#x274C; MISP : {{ translations.result_reputation_known }}</p>                              
+                                {% else %}
+                                    <p>&#x2705; MISP : {{ translations.result_reputation_notknown }}</p>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    {% else %}
+                        <p>{{ translations.result_not_valid_domain }}</p>
+                    {% endif %}
+                </div>
+                <div class="{{ 'danger' if resultats['score_malicious_ip'] == 2 else 'warning' if resultats['score_malicious_ip'] == 1 else 'safe' }}">
+                    <h2>{{ translations.result_ipreputation_title }}</h2>
+                    {% if resultats['domain_is_valid'] %}
+                        {% if resultats['known_ip_by_duggytuxy'] %}
+                            <p>&#x274C; Duggy Tuxy : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Duggy Tuxy : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_ip_by_bitwire'] %}
+                            <p>&#x274C; Bitwire : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Bitwire : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_ip_by_binarydefense'] %}
+                            <p>&#x274C; Binary Defense : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Binary Defense : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_ip_by_blocklistde'] %}
+                            <p>&#x274C; Blocklist.de : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Blocklist.de : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_ip_by_cleanmxde_spam'] %}
+                            <p>&#x274C; Clean-MX.de : {{ translations.result_reputation_known }}</p>
+                        {% elif resultats['known_ip_by_cleanmxde_viruses'] %}
+                            <p>&#x274C; Clean-MX.de : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; Clean-MX.de : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_ip_by_emergingthreats'] %}
+                            <p>&#x274C; EmergingThreats.net : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; EmergingThreats.net : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['known_ip_by_firehol'] %}
+                            <p>&#x274C; FireHOL : {{ translations.result_reputation_known }}</p>
+                        {% else %}
+                            <p>&#x2705; FireHOL : {{ translations.result_reputation_notknown }}</p>
+                        {% endif %}
+                        {% if resultats['otx_api_key'] %}
+                            {% if resultats['otx_ip_known'] %}
+                                {% if resultats['otx_ip_nb_pulse'] > 0 %}
+                                    <p>&#x274C; OTX : {{ translations.result_reputation_known_in }} {{ resultats['otx_ip_nb_pulse'] }} pulse(s)</p>                          
+                                {% else %}                            
+                                    <p>&#x2705; OTX : {{ translations.result_reputation_notknown }}</p>
+                                {% endif %}
+                            {% else %}
+                                <p>&#x2705; OTX : {{ translations.result_reputation_notknown }}</p>
+                            {% endif %}
+                        {% endif %}
+                        {% if resultats['vt_api_key'] %}
+                            {% if resultats['vt_ip_error'] %}
+                                <p>Virustotal : {{ translations.result_reputation_error }} {{ resultats['vt_ip_reason'] }}</p>
+                            {% else %}
+                                {% if resultats['vt_ip_known'] %}
+                                    {% if resultats['vt_ip_malicious'] > 0 %}
+                                        <p>&#x274C; VirusTotal : {{ translations.result_reputation_known_by }} {{ resultats['vt_ip_malicious'] }} {{ translations.result_reputation_known_by_e }} {{ resultats['vt_ip_total'] }}</p>                      
+                                    {% else %}                            
+                                        <p>&#x2705; VirusTotal : {{ translations.result_reputation_notknown }} (0 / {{ resultats['vt_ip_total'] }})</p>
+                                    {% endif %}
+                                {% else %}
+                                    <p>&#x2705; VirusTotal : {{ translations.result_reputation_notknown }}</p>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                        {% if resultats['misp_api_key'] %}
+                            {% if resultats['misp_domain_error'] %}
+                                <p>MISP : {{ translations.result_reputation_error }} {{ resultats['misp_domain_reason'] }}</p>
+                            {% else %}
+                                {% if resultats['misp_domain_known'] %}
+                                    <p>&#x274C; MISP : {{ translations.result_reputation_known }}</p>                              
+                                {% else %}
+                                    <p>&#x2705; MISP : {{ translations.result_reputation_notknown }}</p>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    {% else %}
+                        <p>{{ translations.result_not_valid_domain }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="screenshot">
+        <div>
+            <h2>{{ translations.result_screenshot_title }}</h2>
+            {% if resultats['domain_is_valid'] %}
+                {% if resultats['is_there_popup'] %}
+                    <h3>{{ translations.result_screenshot_title_p }}</h3>
+                    {% if resultats['screenshot_name'] %}
+                        <img src="{{url_for('static', filename='snapshots/' + resultats['screenshot_name'])}}" alt="Capture d'écran de l'URL" style="max-width: 80%; height: auto;">
+                    {% else %}
+                        <p>{{ translations.result_screenshot_info }}</p>
+                    {% endif %}
+                    <h3>{{ translations.result_screenshot_title_wp }}</h3>
+                    {% if resultats['screenshot_name_without_popup'] %}
+                        <img src="{{url_for('static', filename='snapshots/' + resultats['screenshot_name_without_popup'])}}" alt="Capture d'écran de l'URL sans pop-up" style="max-width: 80%; height: auto;">
+                    {% else %}
+                        <p>{{ translations.result_screenshot_info }}</p>
+                    {% endif %}
+                {% else %}
+                    {% if resultats['screenshot_name'] %}
+                        <img src="{{url_for('static', filename='snapshots/' + resultats['screenshot_name'])}}" alt="Capture d'écran de l'URL" style="max-width: 80%; height: auto;">
+                    {% else %}
+                        <p>{{ translations.result_screenshot_info }}</p>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <p>{{ translations.result_not_valid_domain }}</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <div class="button">
+    <button class="btn" onclick="window.location.href='/'">{{ translations.result_new_analysis }}</button>
+    </div>
+</body>
+</html>

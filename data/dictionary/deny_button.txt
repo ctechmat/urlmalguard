@@ -1,0 +1,8 @@
+refuser
+tout refuser
+continuer sans accepter
+non
+annuler
+deny
+no
+reject

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="{{ session.get('lang', 'fr') }}">
+<head>
+    <meta charset="UTF-8">
+    <link href="static/styles/index.css" rel="stylesheet">
+    <link href="static/styles/switch.css" rel="stylesheet">
+    <title>{{ translations.index_title }}</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/punycode/2.1.1/punycode.min.js"></script> <!-- CDN for Punycode -->
+    <script>
+        // Inject the translation of the message into a JavaScript variable
+        const convertPromptMessage = "{{ translations['index_convert_punycode_prompt'] }}";
+        const errorMessageText = "{{ translations['index_error_invalid_domain'] | safe }}";
+
+        // Function to validate if the URL is valid with a domain
+        function validerUrl() {
+            const urlInput = document.getElementById('url');
+            const analyseButton = document.getElementById('analyseButton');
+            const errorMessage = document.getElementById('error-message');
+            const url = urlInput.value;
+
+            // Regular expression for a basic URL
+            const regex = /^(https:\/\/|http:\/\/)([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?:\.(?:[a-zA-Z]{2}))*(\S*)$/;
+
+            // Check if the URL starts with http:// or https:// and contains a valid domain
+            if (regex.test(url)) {
+                // Check if the URL contains an "@" character in the domain part
+                const domain = extractDomain(url);
+                if (domain && domain.includes('@')) {
+                        // If there's an "@" in the domain, it's invalid
+                        analyseButton.disabled = true;
+                        errorMessage.textContent = errorMessageText;
+                        errorMessage.style.display = 'block';  // Show the error message
+                        return;
+                }
+                // If the URL is valid
+                analyseButton.disabled = false;  // Enable the button if the URL is valid
+                errorMessage.style.display = 'none';  // Hide the error message
+            } else if (url.startsWith('http://') || url.startsWith('https://')) {
+                // If the URL starts with "http://" or "https://", check if the domain contains non-ASCII characters
+                const domain = extractDomain(url);
+                if (containsNonAscii(domain)) {
+                    // If the domain contains non-ASCII characters, ask for conversion
+                    if (confirm(convertPromptMessage)) {
+                        const punycodeDomain = punycode.toASCII(domain);  // Convert the domain to Punycode
+                        const punycodeUrl = url.replace(domain, punycodeDomain);  // Replace the domain with its Punycode version
+                        urlInput.value = punycodeUrl;  // Replace the URL with the Punycode version in the input
+                        analyseButton.disabled = false;  // Enable the button if the URL is valid
+                        errorMessage.style.display = 'none';  // Hide the error message
+                    } else {
+                        urlInput.value = '';  // Clear the URL input if the user refuses
+                    }
+                }
+            } else {
+                // If the URL is neither valid nor contains non-ASCII characters
+                analyseButton.disabled = true;  // Disable the button if the URL is invalid
+                errorMessage.style.display = 'block';  // Show the error message
+            }
+        }
+
+        // Function to extract the domain from a URL
+        function extractDomain(url) {
+            const match = url.match(/^(https?:\/\/)?([^\/]+)/);
+            if (match) {
+                return match[2];  // Return the extracted domain
+            }
+            return null;  // Return null if the URL is malformed
+        }
+
+        // Function to check if a domain contains non-ASCII characters
+        function containsNonAscii(domain) {
+            return /[^\x00-\x7F]/.test(domain);  
+        }
+    </script>
+</head>
+<body>
+    <div class="switch-container">
+        <form action="/" method="POST">
+            <select name="lang" onchange="this.form.submit()">
+                <option value="fr" {% if session.get('lang') == 'fr' %}selected{% endif %}>Français</option>
+                <option value="en" {% if session.get('lang') == 'en' %}selected{% endif %}>English</option>
+            </select>
+        </form>
+    </div>
+
+    <section class="soft_name">
+        <h1>U<span style="color: whitesmoke; font-size: 60px;">rl</span>M<span style="color: whitesmoke; font-size: 60px;">al</span>G<span style="color: whitesmoke; font-size: 60px;">uard</span></h1>
+    </section>
+
+    <section class="container">
+        <div class="form-container">
+            <h1 id="title">{{ translations.index_submit_url }}</h1>
+            <p id="description">{{ translations.index_description_submit }}</p>
+            <form action="/analyse" method="POST">
+                <label for="url" id="urlLabel">{{ translations.index_url_label }}</label>
+                <input type="text" id="url" name="url" required oninput="validerUrl()" onpaste="validerUrl()">
+                
+                <!-- Error message -->
+                <p id="error-message" style="display: none;">{{ translations.index_error_message }}</p>
+                
+                <button type="submit" id="analyseButton" disabled>{{ translations.index_analyze_button }}</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="footer">
+        <p>{{ translations.index_footer }}</p>
+    </section>
+</body>
+</html>
