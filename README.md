@@ -109,3 +109,14 @@ If you know of regularly updated lists of urls, domains or ip that you want UrlM
 If you know of any elements in html or javascript code that could be used maliciously, you can create an issue.
 
 In general, if you would like to contribute to the project, you are welcome to do so.
+
+## Known issues
+
+```
+Error when taking a screenshot: Message: session not created: This version of ChromeDriver only supports Chrome version 132
+Current browser version is 134.0.6998.88 with binary path /usr/bin/chromium-browser
+```
+You need to update the pip package for chromedriver_py
+```
+pip install chromedriver_py --upgrade
+```
