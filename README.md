@@ -120,3 +120,7 @@ You need to update the pip package for chromedriver_py
 ```
 pip install chromedriver_py --upgrade
 ```
+Now, you can restart urlmalguard service
+```
+sudo systemctl restart urlmalguard.service
+```
